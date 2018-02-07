@@ -1,0 +1,79 @@
+{
+  "id": "ZMNHOD1",
+  "name": {
+    "en": "ZMNHOD1 Flush Shutter DC"
+  },
+  "zwave": {
+    "manufacturerId": 345,
+    "productTypeId": 3,
+    "productId": 83,
+    "learnmode": {
+      "image": "/drivers/ZMNHOD1/assets/learnmode.svg",
+      "instruction": {
+        "en": "Press the service button (S) on the Flush Shutter DC for more than 2 seconds, switch input 1 3 times within 3 seconds or wait for auto-inclusion (5 seconden) after connecting the device to a power source.",
+        "nl": "Houd de service knop (S) van de Flush Shutter DC langer dan 2 seconden ingedrukt, schakel 3 keer binnen 3 seconden input 1, of wacht op auto-inclusie (5 seconden) na het verbinden van het apparaat met een voedingsbron."
+      }
+    },
+    "associationGroups": [
+      1
+    ],
+    "defaultConfiguration": [
+      {
+        "id": 42,
+        "size": 2,
+        "value": 30
+      },
+      {
+        "id": 71,
+        "size": 1,
+        "value": 1
+      }
+    ],
+    "unlearnmode": {
+      "instruction": {
+        "en": "Press the service button (S) on the Flush Shutter DC for more than 2 and less than 6 seconds, or switch input 1 five times within 3 seconds. Holding the service button for more than 6 seconds will reset the device.",
+        "nl": "Houd de service knop (S) van de Flush Shutter DC meer dan 2 en minder dan 6 seconden ingedrukt, of schakel 5 keer binnen 3 seconden input 1. Het inhouden van de service knop langer dan 6 seconden zal het apparaat resetten."
+      },
+      "image": "/drivers/ZMNHOD1/assets/learnmode.svg"
+    }
+  },
+  "class": "windowcoverings",
+  "capabilities": [
+    "windowcoverings_state",
+    "measure_power",
+    "measure_temperature",
+    "dim"
+  ],
+  "mobile": {
+    "components": [
+      {
+        "id": "icon"
+      },
+      {
+        "id": "ternary",
+        "capabilities": [
+          "windowcoverings_state"
+        ]
+      },
+      {
+        "id": "slider",
+        "capabilities": [
+          "dim"
+        ]
+      },
+      {
+        "id": "sensor",
+        "capabilities": [
+          "measure_power",
+          "measure_temperature"
+        ]
+      }
+    ]
+  },
+  "images": {
+    "large": "/drivers/ZMNHOD1/assets/images/large.png",
+    "small": "/drivers/ZMNHOD1/assets/images/small.png"
+  },
+  "settings": [
+  ]
+}
