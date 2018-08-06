@@ -1,0 +1,24 @@
+{
+  "type": "number",
+  "label": {
+    "en": "Relay auto-off threshold",
+    "nl": "Relais automatisch uitschakelen drempelwaarde"
+  },
+  "units": {
+    "en": "W",
+    "nl": "W"
+  },
+  "hint": {
+    "en": "This parameter ({{zwaveParameterIndex}}) determines the threshold value that will turn the relay off when exceeded.",
+    "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt de drempelwaarde die ervoor zorgt dat het relais wordt uitgeschakeld wanneer overschreden."
+  },
+  "zwave": {
+    "index": 110,
+    "size": 2
+  },
+  "value": 0,
+  "attr": {
+    "min": 0,
+    "max": 15000
+  }
+}

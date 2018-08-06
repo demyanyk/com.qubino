@@ -1,0 +1,256 @@
+[
+  {
+    "$extends": "relayPowerOffThreshold",
+    "id": "relayPowerOffThreshold1",
+    "label": {
+      "en": "IR relay auto-off threshold",
+      "nl": "IR relais automatisch uitschakelen drempelwaarde"
+    },
+    "zwave": {
+      "index": 106,
+      "size": 2,
+      "signed": false
+    },
+    "value": 0,
+    "attr": {
+      "min": 0,
+      "max": 60000
+    }
+  },
+  {
+    "$extends": "relayPowerOffThreshold",
+    "id": "relayPowerOffThreshold2",
+    "label": {
+      "en": "External relay auto-off threshold",
+      "nl": "External relais automatisch uitschakelen drempelwaarde"
+    },
+    "zwave": {
+      "index": 107,
+      "size": 2
+    },
+    "value": 0,
+    "attr": {
+      "min": 0,
+      "max": 20000
+    }
+  },
+  {
+    "id": "delayPowerOff",
+    "type": "number",
+    "label": {
+      "en": "Delay before power on relay",
+      "nl": "Vertraging voor inschakeling relais"
+    },
+    "hint": {
+      "en": "This parameter ({{zwaveParameterIndex}}) specifies the delay which occurs before the relay is restarted after being powered off due to exceeding the threshold (defined by parameters 107 and 176). Note: when setting this parameter to zero the relay will not be automatically turned on after exceeding the threshold.",
+      "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt de vertraging die optreedt voordat het relais opnieuw wordt gestart nadat het is uitgeschakeld door het overschrijden van de drempelwaarde (gedefinieerd in parameters 106 en 107). Let op: wanneer deze parameter wordt ingesteld op nul zal het relais niet automatisch worden ingeschakeld na het overschrijden van de drempelwaarde."
+    },
+    "units": {
+      "en": "s",
+      "nl": "s"
+    },
+    "zwave": {
+      "index": 112,
+      "size": 2
+    },
+    "value": 0,
+    "attr": {
+      "min": 0,
+      "max": 32535
+    }
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Inputs",
+      "nl": "Ingangen"
+    },
+    "children": [
+      {
+        "$extends": "switchTypeInput1",
+        "zwave": {
+          "index": 7,
+          "size": 1
+        },
+        "value": "0",
+        "values": [
+          {
+            "id": "0",
+            "label": {
+              "en": "Disabled",
+              "nl": "Uitgeschakeld"
+            }
+          },
+          {
+            "id": "2",
+            "label": {
+              "en": "Controls IR external relay (momentary switch)",
+              "nl": "Stuurt extern IR relais aan (pulsdrukschakelaar)"
+            }
+          },
+          {
+            "id": "3",
+            "label": {
+              "en": "Controls IR external relay (toggle switch)",
+              "nl": "Stuurt extern IR relais aan (tuimelschakelaar)"
+            }
+          },
+          {
+            "id": "4",
+            "label": {
+              "en": "Controls external relay (momentary switch)",
+              "nl": "Stuurt extern relais aan (pulsdrukschakelaar)"
+            }
+          },
+          {
+            "id": "5",
+            "label": {
+              "en": "Controls external relay (toggle switch)",
+              "nl": "Stuurt extern relais aan (tuimelschakelaar)"
+            }
+          }
+        ],
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) determines the type of switch connected to input 1 of the {{driverNameEn}}. Note: when setting this parameter to use the external relay control it is working with input switch without enabling parameter 101. To make the IR external relay responsive to the digital input parameter 100 must be set to enable the external IR relay.",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) specificeert het type schakelaar dat is aangesloten op ingang 1 van de {{driverNameNl}}. Let op: wanneer deze parameter wordt ingesteld voor het gebruik van het externe relais werkt deze d.m.v. ingang schakelen zonder dat parameter 101 is ingeschakeld. Om het externe IR relais te laten reageren op de digitale ingang moet parameter 100 worden ingesteld zodat het externe IR relais is geactiveerd."
+        }
+      },
+      {
+        "$extends": "enableInput1",
+        "label": {
+          "en": "Enable external IR relays",
+          "nl": "Schakel externe IR relais in"
+        },
+        "values": [
+          {
+            "id": "0",
+            "label": {
+              "en": "Disabled",
+              "nl": "Uitgeschakeld"
+            }
+          },
+          {
+            "id": "1",
+            "label": {
+              "en": "IR relay disabled",
+              "nl": "IR relais uitgeschakeld"
+            }
+          },
+          {
+            "id": "2",
+            "label": {
+              "en": "IR relay enabled and connected to all 3 phases",
+              "nl": "IR relais ingeschakeld en verbonden aan alle 3 fases"
+            }
+          },
+          {
+            "id": "3",
+            "label": {
+              "en": "IR relay enabled and connected to phase 1",
+              "nl": "IR relais ingeschakeld en verbonden aan fase 1"
+            }
+          }
+        ],
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) determines whether the external IR relay is enabled. Note: it is generally advised to leave this parameter unchanged, when changed the device needs te be removed from Homey and re-added after waiting 30 seconds (do not reset the device when removing).",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt of het externe IR relais is ingeschakeld. Let op: over het algemeen is het geadviseerd om deze parameter ongewijzigd te laten, na het aanpassen van deze parameter moet het apparaat van Homey worden verwijderd en opnieuw worden toegevoegd na 30 seconden wachten (zet het apparaat niet terug naar fabrieksinstellingen tijdens het verwijderen)."
+        }
+      },
+      {
+        "$extends": "enableInput2",
+        "label": {
+          "en": "Enable external relays",
+          "nl": "Schakel externe relais in"
+        },
+        "values": [
+          {
+            "id": "0",
+            "label": {
+              "en": "Disabled",
+              "nl": "Uitgeschakeld"
+            }
+          },
+          {
+            "id": "1",
+            "label": {
+              "en": "External relay disabled",
+              "nl": "Externe relais uitgeschakeld"
+            }
+          },
+          {
+            "id": "2",
+            "label": {
+              "en": "External relay enabled and connected to phase 2",
+              "nl": "Externe relais ingeschakeld en verbonden aan fase 2"
+            }
+          }
+        ],
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) determines whether the external relay is enabled. Note: it is generally advised to leave this parameter unchanged, when changed the device needs te be removed from Homey and re-added after waiting 30 seconds (do not reset the device when removing).",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt of het externe relais is ingeschakeld. Let op: over het algemeen is het geadviseerd om deze parameter ongewijzigd te laten, na het aanpassen van deze parameter moet het apparaat van Homey worden verwijderd en opnieuw worden toegevoegd na 30 seconden wachten (zet het apparaat niet terug naar fabrieksinstellingen tijdens het verwijderen)."
+        }
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": {
+      "en": "Power reporting",
+      "nl": "Stroomverbruik"
+    },
+    "children": [
+      {
+        "$extends": "powerReportingThreshold",
+        "value": 50,
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) defines the relative threshold (percentage) which when exceeded will result in a Watt power consumption report being send to Homey. Note: power consumption needs to change by at least 5 Watt before it can be reported, when a Watt report is sent it will also send Voltage, Amperes, Power Factor and Reactive Power reports.",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt de relatieve verandering (in procenten) die overschreden moet worden voordat een Watt stroom consumptie report wordt verstuurd naar Homey. Let op: stroom consumptie report kan pas worden verstuurd nadat de waarde met minimaal 5 Watt is veranderd, waneer een Watt report wordt verstuurd zullen ook Voltage, Ampère, Power Factor en Reactief Vermogen worden gerapporteerd."
+        }
+      },
+      {
+        "$extends": "powerReportingInterval",
+        "id": "powerReportingInterval1",
+        "label": {
+          "en": "Reporting interval - Power, Apparent Power, Reactive Power",
+          "nl": "Report interval - Stroomverbruik, Schijnbaar Vermogen, Reactief Vermogen"
+        },
+        "value": 600,
+        "zwave": {
+          "index": 42,
+          "size": 2,
+          "signed": false
+        },
+        "attr": {
+          "min": 0,
+          "max": 65535
+        },
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) defines the interval in seconds with which Power, Apparent and Reactive Power is reported to Homey. Note: setting this parameter to zero disables reporting based on intervals completely, reports will only be send if there was a change.",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt op welk interval (in seconden) een Stroomverbruik, Schijnbaar en Reactief Vermogen update moet worden verstuurd naar Homey. Let op: het instellen van deze parameter op nul schakelt reports per tijdsinterval volledig uit, reports worden alleen verstuurd als er iets is veranderd."
+        }
+      },
+      {
+        "$extends": "powerReportingInterval",
+        "id": "powerReportingInterval2",
+        "label": {
+          "en": "Reporting interval - Voltage, Amperes, Power Factor, Total Reactive Power",
+          "nl": "Report interval - Voltage, Ampère, Power Factor, Totaal Reactief Vermogen"
+        },
+        "zwave": {
+          "index": 43,
+          "size": 2,
+          "signed": false
+        },
+        "value": 600,
+        "attr": {
+          "min": 0,
+          "max": 65535
+        },
+        "hint": {
+          "en": "This parameter ({{zwaveParameterIndex}}) defines the interval in seconds with which Voltage, Amperes, Power Factor and Total Reactive Power is reported to Homey. Note: setting this parameter to zero disables reporting based on intervals completely, reports will only be send if there was a change.",
+          "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt op welk interval (in seconden) een Voltage, Ampère, Power Factor en Totaal Reactief Vermogen update moet worden verstuurd naar Homey. Let op: het instellen van deze parameter op nul schakelt reports per tijdsinterval volledig uit, reports worden alleen verstuurd als er iets is veranderd."
+        }
+      }
+    ]
+  }
+]

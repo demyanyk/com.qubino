@@ -10780,8 +10780,8 @@
             "nl": "W"
           },
           "hint": {
-            "en": "This parameter (110) determines the threshold value that will turn the selected relay off when exceeded.",
-            "nl": "Deze parameter (110) bepaalt de drempelwaarde die ervoor zorgt dat het geselecteerde relais wordt uitgeschakeld wanneer overschreden."
+            "en": "This parameter (110) determines the threshold value that will turn the relay off when exceeded.",
+            "nl": "Deze parameter (110) bepaalt de drempelwaarde die ervoor zorgt dat het relais wordt uitgeschakeld wanneer overschreden."
           },
           "zwave": {
             "index": 110,
@@ -10806,7 +10806,7 @@
           },
           "units": {
             "en": "s",
-            "nl": ""
+            "nl": "s"
           },
           "zwave": {
             "index": 111,
@@ -11642,6 +11642,473 @@
               "attr": {
                 "min": 0,
                 "max": 1000
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ZMNHXD",
+      "name": {
+        "en": "3-Phase Smart Meter (ZMNHXD)"
+      },
+      "images": {
+        "large": "/drivers/ZMNHXD/assets/images/large.png",
+        "small": "/drivers/ZMNHXD/assets/images/small.png"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "onoff",
+        "measure_voltage",
+        "measure_current",
+        "measure_power",
+        "meter_power.import",
+        "meter_power.export",
+        "powerReactive",
+        "powerTotalReactive",
+        "powerTotalApparent",
+        "powerFactor",
+        "resetMeter"
+      ],
+      "capabilitiesOptions": {
+        "meter_power.import": {
+          "title": {
+            "en": "Power Meter (import)",
+            "nl": "Energiemeter (import)"
+          }
+        },
+        "meter_power.export": {
+          "title": {
+            "en": "Power Meter (export)",
+            "nl": "Energiemeter (export)"
+          }
+        }
+      },
+      "mobile": {
+        "components": [
+          {
+            "capabilities": [],
+            "id": "icon"
+          },
+          {
+            "capabilities": [
+              "measure_voltage",
+              "measure_current",
+              "meter_power.import",
+              "meter_power.export",
+              "measure_power",
+              "powerReactive",
+              "powerTotalReactive",
+              "powerTotalApparent",
+              "powerFactor"
+            ],
+            "id": "sensor"
+          },
+          {
+            "capabilities": [
+              "resetMeter"
+            ],
+            "id": "button"
+          }
+        ]
+      },
+      "zwave": {
+        "manufacturerId": 345,
+        "productTypeId": 7,
+        "productId": 84,
+        "associationGroups": [
+          1
+        ],
+        "multiChannelNodes": {
+          "2": {
+            "class": "sensor",
+            "capabilities": [
+              "onoff",
+              "measure_voltage",
+              "measure_current",
+              "measure_power",
+              "meter_power.import",
+              "meter_power.export",
+              "powerReactive",
+              "powerTotalReactive",
+              "powerTotalApparent",
+              "powerFactor",
+              "resetMeter"
+            ],
+            "name": {
+              "en": "Phase 1 (ZMNHXD)",
+              "nl": "Fase 1 (ZMNHXD)"
+            },
+            "icon": "/drivers/ZMNHXD/assets/icon.svg"
+          },
+          "3": {
+            "class": "sensor",
+            "capabilities": [
+              "onoff",
+              "measure_voltage",
+              "measure_current",
+              "measure_power",
+              "meter_power.import",
+              "meter_power.export",
+              "powerReactive",
+              "powerTotalReactive",
+              "powerTotalApparent",
+              "powerFactor",
+              "resetMeter"
+            ],
+            "name": {
+              "en": "Phase 2 (ZMNHXD)",
+              "nl": "Fase 2 (ZMNHXD)"
+            },
+            "icon": "/drivers/ZMNHXD/assets/icon.svg"
+          },
+          "4": {
+            "class": "sensor",
+            "capabilities": [
+              "onoff",
+              "measure_voltage",
+              "measure_current",
+              "measure_power",
+              "meter_power.import",
+              "meter_power.export",
+              "powerReactive",
+              "powerTotalReactive",
+              "powerTotalApparent",
+              "powerFactor",
+              "resetMeter"
+            ],
+            "name": {
+              "en": "Phase 3 (ZMNHXD)",
+              "nl": "Fase 3 (ZMNHXD)"
+            },
+            "icon": "/drivers/ZMNHXD/assets/icon.svg"
+          }
+        },
+        "learnmode": {
+          "image": "/drivers/ZMNHXD/assets/learnmode.svg",
+          "instruction": {
+            "en": "Enable inclusion mode on the 3-Phase Smart Meter (ZMNHXD) via one of the following methods:\n\n1. Connect the device to the power supply and wait 5 seconds for auto-inclusion to start.\n\n2. Press and hold the S (Service) button for more than 2 seconds.",
+            "nl": "Activeer inclusie modus op de 3-Phase Smart Meter (ZMNHXD) via een van de volgende methoden:\n\n1. Verbind het apparaat met de stroomvoorziening en wacht 5 seconden tot auto-inclusie start.\n\n2. Houd de S (Service) knop langer dan 2 seconden ingedrukt."
+          }
+        },
+        "unlearnmode": {
+          "instruction": {
+            "en": "To enable exclusion mode on the 3-Phase Smart Meter (ZMNHXD) press and hold the S (Service) button for 2 to 6 seconds.\n\nNote: holding the S button longer than 6 seconds will reset the device completely.",
+            "nl": "Activeer exclusie modus op de 3-Phase Smart Meter (ZMNHXD) door de S (Service) knop tussen de 2 en 6 seconden ingedrukt te houden.\n\nLet op: wanneer de S knop langer dan 6 seconden wordt ingedrukt wordt het apparaat teruggezet naar fabrieksinstellingen."
+          },
+          "image": "/drivers/ZMNHXD/assets/learnmode.svg"
+        }
+      },
+      "settings": [
+        {
+          "id": "relayPowerOffThreshold1",
+          "label": {
+            "en": "IR relay auto-off threshold",
+            "nl": "IR relais automatisch uitschakelen drempelwaarde"
+          },
+          "zwave": {
+            "index": 106,
+            "size": 2,
+            "signed": false
+          },
+          "value": 0,
+          "attr": {
+            "min": 0,
+            "max": 60000
+          },
+          "type": "number",
+          "units": {
+            "en": "W",
+            "nl": "W"
+          },
+          "hint": {
+            "en": "This parameter (106) determines the threshold value that will turn the relay off when exceeded.",
+            "nl": "Deze parameter (106) bepaalt de drempelwaarde die ervoor zorgt dat het relais wordt uitgeschakeld wanneer overschreden."
+          }
+        },
+        {
+          "id": "relayPowerOffThreshold2",
+          "label": {
+            "en": "External relay auto-off threshold",
+            "nl": "External relais automatisch uitschakelen drempelwaarde"
+          },
+          "zwave": {
+            "index": 107,
+            "size": 2
+          },
+          "value": 0,
+          "attr": {
+            "min": 0,
+            "max": 20000
+          },
+          "type": "number",
+          "units": {
+            "en": "W",
+            "nl": "W"
+          },
+          "hint": {
+            "en": "This parameter (106) determines the threshold value that will turn the relay off when exceeded.",
+            "nl": "Deze parameter (106) bepaalt de drempelwaarde die ervoor zorgt dat het relais wordt uitgeschakeld wanneer overschreden."
+          }
+        },
+        {
+          "id": "delayPowerOff",
+          "type": "number",
+          "label": {
+            "en": "Delay before power on relay",
+            "nl": "Vertraging voor inschakeling relais"
+          },
+          "hint": {
+            "en": "This parameter (112) specifies the delay which occurs before the relay is restarted after being powered off due to exceeding the threshold (defined by parameters 107 and 176). Note: when setting this parameter to zero the relay will not be automatically turned on after exceeding the threshold.",
+            "nl": "Deze parameter (112) bepaalt de vertraging die optreedt voordat het relais opnieuw wordt gestart nadat het is uitgeschakeld door het overschrijden van de drempelwaarde (gedefinieerd in parameters 106 en 107). Let op: wanneer deze parameter wordt ingesteld op nul zal het relais niet automatisch worden ingeschakeld na het overschrijden van de drempelwaarde."
+          },
+          "units": {
+            "en": "s",
+            "nl": "s"
+          },
+          "zwave": {
+            "index": 112,
+            "size": 2
+          },
+          "value": 0,
+          "attr": {
+            "min": 0,
+            "max": 32535
+          }
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Inputs",
+            "nl": "Ingangen"
+          },
+          "children": [
+            {
+              "zwave": {
+                "index": 7,
+                "size": 1
+              },
+              "value": "0",
+              "values": [
+                {
+                  "id": "0",
+                  "label": {
+                    "en": "Disabled",
+                    "nl": "Uitgeschakeld"
+                  }
+                },
+                {
+                  "id": "2",
+                  "label": {
+                    "en": "Controls IR external relay (momentary switch)",
+                    "nl": "Stuurt extern IR relais aan (pulsdrukschakelaar)"
+                  }
+                },
+                {
+                  "id": "3",
+                  "label": {
+                    "en": "Controls IR external relay (toggle switch)",
+                    "nl": "Stuurt extern IR relais aan (tuimelschakelaar)"
+                  }
+                },
+                {
+                  "id": "4",
+                  "label": {
+                    "en": "Controls external relay (momentary switch)",
+                    "nl": "Stuurt extern relais aan (pulsdrukschakelaar)"
+                  }
+                },
+                {
+                  "id": "5",
+                  "label": {
+                    "en": "Controls external relay (toggle switch)",
+                    "nl": "Stuurt extern relais aan (tuimelschakelaar)"
+                  }
+                }
+              ],
+              "hint": {
+                "en": "This parameter (7) determines the type of switch connected to input 1 of the 3-Phase Smart Meter (ZMNHXD). Note: when setting this parameter to use the external relay control it is working with input switch without enabling parameter 101. To make the IR external relay responsive to the digital input parameter 100 must be set to enable the external IR relay.",
+                "nl": "Deze parameter (7) specificeert het type schakelaar dat is aangesloten op ingang 1 van de 3-Phase Smart Meter (ZMNHXD). Let op: wanneer deze parameter wordt ingesteld voor het gebruik van het externe relais werkt deze d.m.v. ingang schakelen zonder dat parameter 101 is ingeschakeld. Om het externe IR relais te laten reageren op de digitale ingang moet parameter 100 worden ingesteld zodat het externe IR relais is geactiveerd."
+              },
+              "id": "switchTypeInput1",
+              "type": "dropdown",
+              "label": {
+                "en": "Switch type input 1",
+                "nl": "Schakelaar type ingang 1"
+              }
+            },
+            {
+              "label": {
+                "en": "Enable external IR relays",
+                "nl": "Schakel externe IR relais in"
+              },
+              "values": [
+                {
+                  "id": "0",
+                  "label": {
+                    "en": "Disabled",
+                    "nl": "Uitgeschakeld"
+                  }
+                },
+                {
+                  "id": "1",
+                  "label": {
+                    "en": "IR relay disabled",
+                    "nl": "IR relais uitgeschakeld"
+                  }
+                },
+                {
+                  "id": "2",
+                  "label": {
+                    "en": "IR relay enabled and connected to all 3 phases",
+                    "nl": "IR relais ingeschakeld en verbonden aan alle 3 fases"
+                  }
+                },
+                {
+                  "id": "3",
+                  "label": {
+                    "en": "IR relay enabled and connected to phase 1",
+                    "nl": "IR relais ingeschakeld en verbonden aan fase 1"
+                  }
+                }
+              ],
+              "hint": {
+                "en": "This parameter (100) determines whether the external IR relay is enabled. Note: it is generally advised to leave this parameter unchanged, when changed the device needs te be removed from Homey and re-added after waiting 30 seconds (do not reset the device when removing).",
+                "nl": "Deze parameter (100) bepaalt of het externe IR relais is ingeschakeld. Let op: over het algemeen is het geadviseerd om deze parameter ongewijzigd te laten, na het aanpassen van deze parameter moet het apparaat van Homey worden verwijderd en opnieuw worden toegevoegd na 30 seconden wachten (zet het apparaat niet terug naar fabrieksinstellingen tijdens het verwijderen)."
+              },
+              "id": "enableInput1",
+              "type": "dropdown",
+              "zwave": {
+                "index": 100,
+                "size": 1
+              },
+              "value": "0"
+            },
+            {
+              "label": {
+                "en": "Enable external relays",
+                "nl": "Schakel externe relais in"
+              },
+              "values": [
+                {
+                  "id": "0",
+                  "label": {
+                    "en": "Disabled",
+                    "nl": "Uitgeschakeld"
+                  }
+                },
+                {
+                  "id": "1",
+                  "label": {
+                    "en": "External relay disabled",
+                    "nl": "Externe relais uitgeschakeld"
+                  }
+                },
+                {
+                  "id": "2",
+                  "label": {
+                    "en": "External relay enabled and connected to phase 2",
+                    "nl": "Externe relais ingeschakeld en verbonden aan fase 2"
+                  }
+                }
+              ],
+              "hint": {
+                "en": "This parameter (100) determines whether the external relay is enabled. Note: it is generally advised to leave this parameter unchanged, when changed the device needs te be removed from Homey and re-added after waiting 30 seconds (do not reset the device when removing).",
+                "nl": "Deze parameter (100) bepaalt of het externe relais is ingeschakeld. Let op: over het algemeen is het geadviseerd om deze parameter ongewijzigd te laten, na het aanpassen van deze parameter moet het apparaat van Homey worden verwijderd en opnieuw worden toegevoegd na 30 seconden wachten (zet het apparaat niet terug naar fabrieksinstellingen tijdens het verwijderen)."
+              },
+              "id": "enableInput2",
+              "type": "dropdown",
+              "zwave": {
+                "index": 100,
+                "size": 1
+              },
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Power reporting",
+            "nl": "Stroomverbruik"
+          },
+          "children": [
+            {
+              "value": 50,
+              "hint": {
+                "en": "This parameter (40) defines the relative threshold (percentage) which when exceeded will result in a Watt power consumption report being send to Homey. Note: power consumption needs to change by at least 5 Watt before it can be reported, when a Watt report is sent it will also send Voltage, Amperes, Power Factor and Reactive Power reports.",
+                "nl": "Deze parameter (40) bepaalt de relatieve verandering (in procenten) die overschreden moet worden voordat een Watt stroom consumptie report wordt verstuurd naar Homey. Let op: stroom consumptie report kan pas worden verstuurd nadat de waarde met minimaal 5 Watt is veranderd, waneer een Watt report wordt verstuurd zullen ook Voltage, Ampère, Power Factor en Reactief Vermogen worden gerapporteerd."
+              },
+              "id": "powerReportingThreshold",
+              "type": "number",
+              "label": {
+                "en": "Power report on power change",
+                "nl": "Stroomverbruik update bij verandering van"
+              },
+              "units": {
+                "en": "%",
+                "nl": "%"
+              },
+              "zwave": {
+                "index": 40,
+                "size": 1
+              },
+              "attr": {
+                "min": 0,
+                "max": 100
+              }
+            },
+            {
+              "id": "powerReportingInterval1",
+              "label": {
+                "en": "Reporting interval - Power, Apparent Power, Reactive Power",
+                "nl": "Report interval - Stroomverbruik, Schijnbaar Vermogen, Reactief Vermogen"
+              },
+              "value": 600,
+              "zwave": {
+                "index": 42,
+                "size": 2,
+                "signed": false
+              },
+              "attr": {
+                "min": 0,
+                "max": 65535
+              },
+              "hint": {
+                "en": "This parameter (42) defines the interval in seconds with which Power, Apparent and Reactive Power is reported to Homey. Note: setting this parameter to zero disables reporting based on intervals completely, reports will only be send if there was a change.",
+                "nl": "Deze parameter (42) bepaalt op welk interval (in seconden) een Stroomverbruik, Schijnbaar en Reactief Vermogen update moet worden verstuurd naar Homey. Let op: het instellen van deze parameter op nul schakelt reports per tijdsinterval volledig uit, reports worden alleen verstuurd als er iets is veranderd."
+              },
+              "type": "number",
+              "units": {
+                "en": "s",
+                "nl": "s"
+              }
+            },
+            {
+              "id": "powerReportingInterval2",
+              "label": {
+                "en": "Reporting interval - Voltage, Amperes, Power Factor, Total Reactive Power",
+                "nl": "Report interval - Voltage, Ampère, Power Factor, Totaal Reactief Vermogen"
+              },
+              "zwave": {
+                "index": 43,
+                "size": 2,
+                "signed": false
+              },
+              "value": 600,
+              "attr": {
+                "min": 0,
+                "max": 65535
+              },
+              "hint": {
+                "en": "This parameter (43) defines the interval in seconds with which Voltage, Amperes, Power Factor and Total Reactive Power is reported to Homey. Note: setting this parameter to zero disables reporting based on intervals completely, reports will only be send if there was a change.",
+                "nl": "Deze parameter (43) bepaalt op welk interval (in seconden) een Voltage, Ampère, Power Factor en Totaal Reactief Vermogen update moet worden verstuurd naar Homey. Let op: het instellen van deze parameter op nul schakelt reports per tijdsinterval volledig uit, reports worden alleen verstuurd als er iets is veranderd."
+              },
+              "type": "number",
+              "units": {
+                "en": "s",
+                "nl": "s"
               }
             }
           ]
