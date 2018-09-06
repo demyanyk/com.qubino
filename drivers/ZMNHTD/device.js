@@ -7,6 +7,9 @@ const QubinoDevice = require('../../lib/QubinoDevice');
  * Smart Meter (ZMNHTD)
  * Extended manual: http://qubino.com/download/2069/
  * Regular manual: http://qubino.com/download/1093/
+ * TODO: METER_CC not available when paired secure
+ * TODO: device sends reports in var not kVar (maybe also other devices)
+ * TODO: fix multi channel node configuration
  */
 class ZMNHTD extends QubinoDevice {
 
@@ -28,7 +31,7 @@ class ZMNHTD extends QubinoDevice {
 		this.registerCapability(constants.capabilities.measurePower, constants.commandClasses.meter);
 		this.registerCapability(constants.capabilities.meterPowerImport, constants.commandClasses.meter);
 		this.registerCapability(constants.capabilities.meterPowerExport, constants.commandClasses.meter);
-		this.registerCapability(constants.capabilities.powerReactive, constants.commandClasses.meter); // TODO: validate this is in kVar
+		this.registerCapability(constants.capabilities.powerReactive, constants.commandClasses.meter);
 		this.registerCapability(constants.capabilities.powerTotalReactive, constants.commandClasses.meter);
 		this.registerCapability(constants.capabilities.powerTotalApparent, constants.commandClasses.meter);
 		this.registerCapability(constants.capabilities.powerFactor, constants.commandClasses.meter);
