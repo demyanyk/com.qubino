@@ -10,10 +10,8 @@ const QubinoDimDevice = require('../../lib/QubinoDimDevice');
  * Regular manual: http://qubino.com/download/1537/
  *
  * TODO: test logic
- * TODO: add support for different modes (4 dimmable devices example)
- * TODO: add 4-dimmers-mode to re-pair settings
- * TODO: it seems the COLOR_SET command does not function
  * TODO: test autoSceneModeTransitionDuration and autoSceneModeTransitionDurationUnit
+ * TODO: 4-dimmers mode is not implementable since the mobile components can not change dynamically
  */
 class ZMNHWD extends QubinoDimDevice {
 

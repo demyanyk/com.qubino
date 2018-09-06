@@ -225,53 +225,6 @@
           "min": 1,
           "max": 127
         }
-      },
-      {
-        "id": "fourDimmersMode",
-        "type": "dropdown",
-        "label": {
-          "en": "Four dimmers mode",
-          "nl": "Vier dimmers modus"
-        },
-        "hint": {
-          "en": "This parameter ({{zwaveParameterIndex}}) activates the four dimmers mode which lets the module control 4 separate dimmable LED strips. Note: if this parameter is enabled, parameters 1, 2, 3 and 4 will be discarded.",
-          "nl": "Deze parameter ({{zwaveParameterIndex}}) activeert de vier dimmers modus, hiermee kan de module 4 aparte dimbare LED strips bedienen. Let op: als deze parameter is geactiveerd zullen parameters 1, 2, 3 en 4 worden gedeactiveerd."
-        },
-        "zwave": {
-          "index": 14,
-          "size": 1
-        },
-        "value": "0",
-        "values": [
-          {
-            "id": "0",
-            "label": {
-              "en": "Disabled",
-              "nl": "Uitgeschakeld"
-            }
-          },
-          {
-            "id": "1",
-            "label": {
-              "en": "Enabled - Momentary switch",
-              "nl": "Ingeschakeld - Pulsdrukschakelaar"
-            }
-          },
-          {
-            "id": "2",
-            "label": {
-              "en": "Enabled - Toggle switch",
-              "nl": "Ingeschakeld - Tuimelschakelaar"
-            }
-          },
-          {
-            "id": "3",
-            "label": {
-              "en": "Enabled - Toggle switch with memory",
-              "nl": "Ingeschakeld - Tuimelschakelaar met geheugen"
-            }
-          }
-        ]
       }
     ]
   }
