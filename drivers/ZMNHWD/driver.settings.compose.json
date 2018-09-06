@@ -57,6 +57,35 @@
     ]
   },
   {
+    "id": "autoSceneModeTransitionDurationUnit",
+    "type": "dropdown",
+    "label": {
+      "en": "Color transition duration unit",
+      "nl": "Vertraging tussen kleur verandering eenheid"
+    },
+    "hint": {
+      "en": "This setting determines the time unit used by the \"Color transition duration\" setting.",
+      "nl": "Deze instelling bepaalt de tijdseenheid die wordt gebruikt door de \"Vertraging tussen kleur verandering\" instelling.."
+    },
+    "value": "sec",
+    "values": [
+      {
+        "id": "sec",
+        "label": {
+          "en": "seconds",
+          "nl": "seconden"
+        }
+      },
+      {
+        "id": "min",
+        "label": {
+          "en": "minutes",
+          "nl": "minuten"
+        }
+      }
+    ]
+  },
+  {
     "id": "autoSceneModeTransitionDuration",
     "type": "number",
     "label": {
@@ -64,20 +93,16 @@
       "nl": "Vertraging tussen kleur verandering"
     },
     "hint": {
-      "en": "This parameter ({{zwaveParameterIndex}}) determines the time between consecutive color changes. Note: this parameter has no effect on the lighting and party scenes.",
-      "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt de tijd tussen opeenvolgende kleur veranderingen. Let op: deze parameter heeft geen effect op de bliksem en feest scenes."
+      "en": "This parameter ({{zwaveParameterIndex}}) determines the time between consecutive color changes. Note: the unit of this parameter is defined by the setting above, this parameter has no effect on the lighting and party scenes.",
+      "nl": "Deze parameter ({{zwaveParameterIndex}}) bepaalt de tijd tussen opeenvolgende kleur veranderingen. Let op: de tijdseenheid van deze parameter wordt bepaalt door de instelling hierboven, deze parameter heeft geen effect op de bliksem en feest scenes."
     },
     "zwave": {
       "index": 6,
       "size": 2
     },
-    "units": {
-      "en": "s",
-      "nl": "s"
-    },
     "attr": {
       "min": 1,
-      "max": 1127
+      "max": 127
     },
     "value": 3
   },

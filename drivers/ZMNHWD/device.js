@@ -9,12 +9,11 @@ const QubinoDimDevice = require('../../lib/QubinoDimDevice');
  * Extended manual: http://qubino.com/download/2063/
  * Regular manual: http://qubino.com/download/1537/
  *
- * TODO: logic
- * TODO: icons and images
+ * TODO: test logic
  * TODO: add support for different modes (4 dimmable devices example)
- * TODO: custom setting parser: autoSceneModeTransitionDuration
  * TODO: add 4-dimmers-mode to re-pair settings
  * TODO: it seems the COLOR_SET command does not function
+ * TODO: test autoSceneModeTransitionDuration and autoSceneModeTransitionDurationUnit
  */
 class ZMNHWD extends QubinoDimDevice {
 
@@ -28,85 +27,112 @@ class ZMNHWD extends QubinoDimDevice {
 		this.registerMultipleCapabilityListener([constants.capabilities.lightHue, constants.capabilities.lightSaturation, constants.capabilities.lightTemperature, constants.capabilities.lightMode], (valueObj, optsObj) => {
 			this.log('valueObj', valueObj);
 			this.log('optsObj', optsObj);
-			// TODO: duration
-			// let lightHue = this.getCapabilityValue(constants.capabilities.lightHue);
-			// let lightSaturation = this.getCapabilityValue(constants.capabilities.lightSaturation);
-			// let lightTemperature = this.getCapabilityValue(constants.capabilities.lightTemperature);
-			// let lightMode = this.getCapabilityValue(constants.capabilities.lightMode);
-
-			let {
-				light_hue: lightHue,
-				light_saturation: lightSaturation,
-				light_temperature: lightTemperature,
-				light_mode: lightMode,
-			} = valueObj;
 
 			const dim = this.getCapabilityValue(constants.capabilities.dim);
+			const lightHue = typeof valueObj.light_hue === 'number' ? valueObj.light_hue : this.getCapabilityValue('light_hue');
+			const lightSaturation = typeof valueObj.light_saturation === 'number' ? valueObj.light_saturation : this.getCapabilityValue('light_saturation');
+			const lightTemperature = typeof valueObj.light_temperature === 'number' ? valueObj.light_temperature : this.getCapabilityValue('light_temperature');
+			const lightMode = typeof valueObj.light_mode === 'number' ? valueObj.light_mode : this.getCapabilityValue('light_mode');
 
-			if (typeof lightHue === 'undefined') lightHue = this.getCapabilityValue(constants.capabilities.lightHue);
-			if (typeof lightSaturation === 'undefined') lightSaturation = this.getCapabilityValue(constants.capabilities.lightSaturation);
-			if (typeof lightTemperature === 'undefined') lightTemperature = this.getCapabilityValue(constants.capabilities.lightTemperature);
-			if (typeof lightMode === 'undefined') lightMode = this.getCapabilityValue(constants.capabilities.lightMode);
+			// Check if one of the capability has a duration property and use it
+			let duration = 255;
+			for (const capability of optsObj) {
+				if (optsObj[capability].hasOwnProperty('duration')) {
+					duration = util.calculateZwaveDimDuration(optsObj[capability].duration);
+				}
+			}
 
-
-			// TODO: if light_mode = color
+			// Create RGB object from available HSV values
 			let { red = 0, green = 0, blue = 0 } = util.convertHSVToRGB({
 				hue: lightHue,
 				saturation: lightSaturation,
 				value: dim,
 			});
 
-			// TODO: lightMode unknown
+			// If lightMode is not color reset color values
 			if (lightMode !== 'color') {
 				red = 0;
 				green = 0;
 				blue = 0;
 			}
 
-			// TODO: if light_mode = temperature
-			const ww = (lightTemperature >= 0.5 && lightMode === 'temperature') ? util.mapValueRange(0.5, 1, 10, 255, lightTemperature) : 0;
-			const cw = (lightTemperature < 0.5 && lightMode === 'temperature') ? util.mapValueRange(0, 0.5, 255, 10, lightTemperature) : 0;
+			// If lightMode is temperature or unknown set ww/cw value, else if lightMode is color reset ww/cw
+			const ww = (lightTemperature >= 0.5 && lightMode !== 'color') ? util.mapValueRange(0.5, 1, 10, 255, lightTemperature) : 0;
+			const cw = (lightTemperature < 0.5 && lightMode !== 'color') ? util.mapValueRange(0, 0.5, 255, 10, lightTemperature) : 0;
 
-			console.log('SET:', lightMode);
-			const obj = {
-				Properties1: {
-					'Color Component Count': 5,
-				},
-				Duration: 255,
-				vg1: [
-					{
-						'Color Component ID': 0,
-						Value: Math.round(ww * dim),
-					},
-					{
-						'Color Component ID': 1,
-						Value: Math.round(cw * dim),
-					},
-					{
-						'Color Component ID': 2,
-						Value: Math.round(red * dim),
-					},
-					{
-						'Color Component ID': 3,
-						Value: Math.round(green * dim),
-					},
-					{
-						'Color Component ID': 4,
-						Value: Math.round(blue * dim),
-					},
-				],
-			};
-
-			console.log(obj);
-			return this.node.CommandClass[`COMMAND_CLASS_${constants.commandClasses.switchColor}`].SWITCH_COLOR_SET(obj).then(res => {
-				console.log('SWITCH_COLOR_SET result', res);
-				return res;
-			}).catch(err => {
-				console.error('SWITCH_COLOR_SET error', err);
-				throw err;
+			// Set switch color set command
+			return this._sendColors({
+				red: Math.round(red * dim),
+				green: Math.round(green * dim),
+				blue: Math.round(blue * dim),
+				warm: Math.round(ww * dim),
+				cold: Math.round(cw * dim),
+				duration,
 			});
 		}, 500);
+	}
 
+	async _sendColors({ red, green, blue, warm, cold, duration }) {
+		return await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET({
+			Properties1: {
+				'Color Component Count': 5,
+			},
+			Duration: duration,
+			vg1: [
+				{
+					'Color Component ID': 0,
+					Value: warm,
+				},
+				{
+					'Color Component ID': 1,
+					Value: cold,
+				},
+				{
+					'Color Component ID': 2,
+					Value: red,
+				},
+				{
+					'Color Component ID': 3,
+					Value: green,
+				},
+				{
+					'Color Component ID': 4,
+					Value: blue,
+				},
+			],
+		});
+	}
+
+	/**
+	 * Override onSettings to handle combined z-wave settings.
+	 * @param oldSettings
+	 * @param newSettings
+	 * @param changedKeysArr
+	 * @returns {Promise<T>}
+	 */
+	async onSettings(oldSettings, newSettings, changedKeysArr) {
+
+		// Get updated duration unit
+		let autoSceneModeTransitionDurationUnit = oldSettings[constants.settings.autoSceneModeTransitionDurationUnit];
+		if (changedKeysArr.includes(constants.settings.autoSceneModeTransitionDurationUnit)) {
+			autoSceneModeTransitionDurationUnit = newSettings[constants.settings.autoSceneModeTransitionDurationUnit];
+
+			// If unit changed make sure duration is also added as changed
+			changedKeysArr.push(constants.settings.autoSceneModeTransitionDuration);
+		}
+
+		// Get updated transition duration value
+		let autoSceneModeTransitionDuration = oldSettings[constants.settings.autoSceneModeTransitionDuration];
+		if (changedKeysArr.includes(constants.settings.autoSceneModeTransitionDuration)) {
+			autoSceneModeTransitionDuration = newSettings[constants.settings.autoSceneModeTransitionDuration];
+		}
+
+		// Add 1000 if unit is minutes
+		if (autoSceneModeTransitionDurationUnit === 'min') {
+			newSettings[constants.settings.autoSceneModeTransitionDuration] = autoSceneModeTransitionDuration + 1000;
+		}
+
+		return super.onSettings(oldSettings, newSettings, changedKeysArr);
 	}
 }
 
