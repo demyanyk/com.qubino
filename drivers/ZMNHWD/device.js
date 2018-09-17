@@ -26,25 +26,33 @@ class ZMNHWD extends QubinoDimDevice {
 			this.log('valueObj', valueObj);
 			this.log('optsObj', optsObj);
 
-			const dim = this.getCapabilityValue(constants.capabilities.dim);
+			let dim = this.getCapabilityValue(constants.capabilities.dim);
+			dim = 1;
 			const lightHue = typeof valueObj.light_hue === 'number' ? valueObj.light_hue : this.getCapabilityValue('light_hue');
 			const lightSaturation = typeof valueObj.light_saturation === 'number' ? valueObj.light_saturation : this.getCapabilityValue('light_saturation');
 			const lightTemperature = typeof valueObj.light_temperature === 'number' ? valueObj.light_temperature : this.getCapabilityValue('light_temperature');
-			const lightMode = typeof valueObj.light_mode === 'number' ? valueObj.light_mode : this.getCapabilityValue('light_mode');
+			const lightMode = typeof valueObj.light_mode === 'string' ? valueObj.light_mode : this.getCapabilityValue('light_mode') || 'color';
 
 			// Check if one of the capability has a duration property and use it
+			// TODO: think of a better way, can there be multiple durations?
 			let duration = 255;
-			for (const capability of optsObj) {
+			for (const capability in optsObj) {
 				if (optsObj[capability].hasOwnProperty('duration')) {
 					duration = util.calculateZwaveDimDuration(optsObj[capability].duration);
 				}
 			}
+			this.log('convert', lightHue || 0, lightSaturation || 0, dim || 0);
+			this.log(util.convertHSVToRGB({
+				hue: lightHue || 0,
+				saturation: lightSaturation || 1,
+				value: dim || 1,
+			}));
 
 			// Create RGB object from available HSV values
 			let { red = 0, green = 0, blue = 0 } = util.convertHSVToRGB({
-				hue: lightHue,
-				saturation: lightSaturation,
-				value: dim,
+				hue: lightHue || 0,
+				saturation: lightSaturation || 1,
+				value: dim || 1,
 			});
 
 			// If lightMode is not color reset color values
@@ -57,6 +65,15 @@ class ZMNHWD extends QubinoDimDevice {
 			// If lightMode is temperature or unknown set ww/cw value, else if lightMode is color reset ww/cw
 			const ww = (lightTemperature >= 0.5 && lightMode !== 'color') ? util.mapValueRange(0.5, 1, 10, 255, lightTemperature) : 0;
 			const cw = (lightTemperature < 0.5 && lightMode !== 'color') ? util.mapValueRange(0, 0.5, 255, 10, lightTemperature) : 0;
+
+			this.log('dim', dim);
+			this.log('lightHue', lightHue);
+			this.log('lightSaturation', lightSaturation);
+			this.log('lightTemperature', lightTemperature);
+			this.log('lightMode', lightMode);
+			this.log('ww', ww);
+			this.log('cw', cw);
+			this.log('duration', duration);
 
 			// Set switch color set command
 			return this._sendColors({
@@ -71,11 +88,12 @@ class ZMNHWD extends QubinoDimDevice {
 	}
 
 	async _sendColors({ red, green, blue, warm, cold, duration }) {
-		return await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET({
+		this.log('red', red, 'green', green, 'blue', blue, 'warm', warm, 'cold', cold, 'duration', duration);
+		const obj = {
+			// Duration: 0, // String "Default/Instantly" does not work, leaving the prop out does not work, 0 seems to work bu then vg1 is messed up
 			Properties1: {
 				'Color Component Count': 5,
 			},
-			Duration: duration,
 			vg1: [
 				{
 					'Color Component ID': 0,
@@ -97,8 +115,42 @@ class ZMNHWD extends QubinoDimDevice {
 					'Color Component ID': 4,
 					Value: blue,
 				},
-			],
-		});
+			]
+		};
+		this.log(obj);
+		const res = await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET(obj);
+		this.log('res');
+		this.log(res);
+		return res;
+
+		// return await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET({
+		// 	Properties1: {
+		// 		'Color Component Count': 5,
+		// 	},
+		// 	Duration: duration,
+		// 	vg1: [
+		// 		{
+		// 			'Color Component ID': 0,
+		// 			Value: warm,
+		// 		},
+		// 		{
+		// 			'Color Component ID': 1,
+		// 			Value: cold,
+		// 		},
+		// 		{
+		// 			'Color Component ID': 2,
+		// 			Value: red,
+		// 		},
+		// 		{
+		// 			'Color Component ID': 3,
+		// 			Value: green,
+		// 		},
+		// 		{
+		// 			'Color Component ID': 4,
+		// 			Value: blue,
+		// 		},
+		// 	],
+		// });
 	}
 
 	/**

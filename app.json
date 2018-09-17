@@ -9304,53 +9304,6 @@
                 "en": "This parameter (13) determines the time it takes to move between the maximum and minimum dim values when the switch connected to input 1 is pressed continuously or when controlled via an associated device.",
                 "nl": "Deze parameter (13) bepaalt de tijd die nodig is voor het dimmen van het maximale naar het minimale dim niveau wanneer de schakelaar aangesloten op ingang 1 lang wordt ingedrukt of wanneer aangestuurd via een geassocieerd apparaat."
               }
-            },
-            {
-              "id": "fourDimmersMode",
-              "type": "dropdown",
-              "label": {
-                "en": "Four dimmers mode",
-                "nl": "Vier dimmers modus"
-              },
-              "hint": {
-                "en": "This parameter (14) activates the four dimmers mode which lets the module control 4 separate dimmable LED strips. Note: if this parameter is enabled, parameters 1, 2, 3 and 4 will be discarded.",
-                "nl": "Deze parameter (14) activeert de vier dimmers modus, hiermee kan de module 4 aparte dimbare LED strips bedienen. Let op: als deze parameter is geactiveerd zullen parameters 1, 2, 3 en 4 worden gedeactiveerd."
-              },
-              "zwave": {
-                "index": 14,
-                "size": 1
-              },
-              "value": "0",
-              "values": [
-                {
-                  "id": "0",
-                  "label": {
-                    "en": "Disabled",
-                    "nl": "Uitgeschakeld"
-                  }
-                },
-                {
-                  "id": "1",
-                  "label": {
-                    "en": "Enabled - Momentary switch",
-                    "nl": "Ingeschakeld - Pulsdrukschakelaar"
-                  }
-                },
-                {
-                  "id": "2",
-                  "label": {
-                    "en": "Enabled - Toggle switch",
-                    "nl": "Ingeschakeld - Tuimelschakelaar"
-                  }
-                },
-                {
-                  "id": "3",
-                  "label": {
-                    "en": "Enabled - Toggle switch with memory",
-                    "nl": "Ingeschakeld - Tuimelschakelaar met geheugen"
-                  }
-                }
-              ]
             }
           ]
         }
