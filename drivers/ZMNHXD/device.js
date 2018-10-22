@@ -7,7 +7,9 @@ const QubinoDevice = require('../../lib/QubinoDevice');
  * 3-Phase Smart Meter (ZMNHXD)
  * Extended manual: http://qubino.com/download/2244/
  * TODO: test endpoints and add relay endpoints?
- * TODO: wait for response by Qubino (device seems to have faulty firmware, no METER command class on multi channel nodes)
+ * TODO: device misses some command classes due to the fact that SECURITY_COMMANDS_SUPPORTED_GET is not performed
+ * during inclusion. Edit: the command is executed but it seems the inclusion is not complete regarding the endpoints.
+ * See the (unencrypted) zniffer log from Qubino
  */
 class ZMNHXD extends QubinoDevice {
 
