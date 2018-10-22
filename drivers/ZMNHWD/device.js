@@ -4,6 +4,8 @@ const util = require('homey-meshdriver').Util;
 const constants = require('../../lib/constants');
 const QubinoDimDevice = require('../../lib/QubinoDimDevice');
 
+const FACTORY_DEFAULT_COLOR_DURATION = 255;
+
 /**
  * Flush RGBW Dimmer (ZMNHWD)
  * Extended manual: http://qubino.com/download/2063/
@@ -13,6 +15,7 @@ const QubinoDimDevice = require('../../lib/QubinoDimDevice');
  * TODO: test autoSceneModeTransitionDuration and autoSceneModeTransitionDurationUnit
  * TODO: 4-dimmers mode is not implementable since the mobile components can not change dynamically
  */
+
 class ZMNHWD extends QubinoDimDevice {
 
 	/**
@@ -20,138 +23,240 @@ class ZMNHWD extends QubinoDimDevice {
 	 * @private
 	 */
 	registerCapabilities() {
-		this.registerCapability(constants.capabilities.onoff, constants.commandClasses.switchBinary);
-		this.registerCapability(constants.capabilities.dim, constants.commandClasses.switchMultilevel);
-		this.registerMultipleCapabilityListener([constants.capabilities.lightHue, constants.capabilities.lightSaturation, constants.capabilities.lightTemperature, constants.capabilities.lightMode], (valueObj, optsObj) => {
-			this.log('valueObj', valueObj);
-			this.log('optsObj', optsObj);
 
-			let dim = this.getCapabilityValue(constants.capabilities.dim);
-			dim = 1;
-			const lightHue = typeof valueObj.light_hue === 'number' ? valueObj.light_hue : this.getCapabilityValue('light_hue');
-			const lightSaturation = typeof valueObj.light_saturation === 'number' ? valueObj.light_saturation : this.getCapabilityValue('light_saturation');
-			const lightTemperature = typeof valueObj.light_temperature === 'number' ? valueObj.light_temperature : this.getCapabilityValue('light_temperature');
-			const lightMode = typeof valueObj.light_mode === 'string' ? valueObj.light_mode : this.getCapabilityValue('light_mode') || 'color';
+		this.registerCapability('onoff', 'SWITCH_MULTILEVEL');
+		this.registerCapability('dim', 'SWITCH_MULTILEVEL');
+		let debounceColorMode;
 
-			// Check if one of the capability has a duration property and use it
-			// TODO: think of a better way, can there be multiple durations?
-			let duration = 255;
-			for (const capability in optsObj) {
-				if (optsObj[capability].hasOwnProperty('duration')) {
-					duration = util.calculateZwaveDimDuration(optsObj[capability].duration);
-				}
-			}
-			this.log('convert', lightHue || 0, lightSaturation || 0, dim || 0);
-			this.log(util.convertHSVToRGB({
-				hue: lightHue || 0,
-				saturation: lightSaturation || 1,
-				value: dim || 1,
-			}));
+		this.registerMultipleCapabilityListener(['light_hue', 'light_saturation'], async (values, options) => {
+			let hue;
+			let saturation;
 
-			// Create RGB object from available HSV values
-			let { red = 0, green = 0, blue = 0 } = util.convertHSVToRGB({
-				hue: lightHue || 0,
-				saturation: lightSaturation || 1,
-				value: dim || 1,
+			typeof values.light_hue === 'number' ? hue = values.light_hue : hue = this.getCapabilityValue('light_hue');
+			typeof values.light_saturation === 'number' ? saturation = values.light_saturation : saturation = this.getCapabilityValue('light_saturation');
+			const value = 1; // Brightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs reallife brightness out of sync
+
+			const rgb = util.convertHSVToRGB({ hue, saturation, value });
+
+			debounceColorMode = setTimeout(() => {
+				debounceColorMode = false;
+			}, 200);
+
+			return await this._sendColors({
+				warm: 0,
+				cold: 0,
+				red: rgb.red,
+				green: rgb.green,
+				blue: rgb.blue,
+				duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
 			});
+		});
 
-			// If lightMode is not color reset color values
-			if (lightMode !== 'color') {
-				red = 0;
-				green = 0;
-				blue = 0;
-			}
+		this.registerCapabilityListener(['light_temperature'], async (value, options) => {
+			const warm = Math.floor(value * 255);
+			const cold = Math.floor((1 - value) * 255);
 
-			// If lightMode is temperature or unknown set ww/cw value, else if lightMode is color reset ww/cw
-			const ww = (lightTemperature >= 0.5 && lightMode !== 'color') ? util.mapValueRange(0.5, 1, 10, 255, lightTemperature) : 0;
-			const cw = (lightTemperature < 0.5 && lightMode !== 'color') ? util.mapValueRange(0, 0.5, 255, 10, lightTemperature) : 0;
+			debounceColorMode = setTimeout(() => {
+				debounceColorMode = false;
+			}, 200);
 
-			this.log('dim', dim);
-			this.log('lightHue', lightHue);
-			this.log('lightSaturation', lightSaturation);
-			this.log('lightTemperature', lightTemperature);
-			this.log('lightMode', lightMode);
-			this.log('ww', ww);
-			this.log('cw', cw);
-			this.log('duration', duration);
-
-			// Set switch color set command
-			return this._sendColors({
-				red: Math.round(red * dim),
-				green: Math.round(green * dim),
-				blue: Math.round(blue * dim),
-				warm: Math.round(ww * dim),
-				cold: Math.round(cw * dim),
-				duration,
+			return await this._sendColors({
+				warm,
+				cold,
+				red: 0,
+				green: 0,
+				blue: 0,
+				duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
 			});
-		}, 500);
+		});
+
+		this.registerCapability('light_mode', 'SWITCH_COLOR', {
+			set: 'SWITCH_COLOR_SET',
+			setParser: (value, options) => {
+
+				// set light_mode is always triggered with the set color/temperature flow cards, timeout is needed because of homey's async nature surpassing the debounce
+				setTimeout(async () => {
+					if (debounceColorMode) {
+						clearTimeout(debounceColorMode);
+						debounceColorMode = false;
+						return this.setCapabilityValue('light_mode', value);
+					}
+
+					if (value === 'color') {
+						const hue = this.getCapabilityValue('light_hue') || 1;
+						const saturation = this.getCapabilityValue('light_saturation') || 1;
+						const _value = 1; // Bightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs reallife brightness out of sync
+
+						const rgb = util.convertHSVToRGB({ hue, saturation, _value });
+
+						return await this._sendColors({
+							warm: 0,
+							cold: 0,
+							red: rgb.red,
+							green: rgb.green,
+							blue: rgb.blue,
+							duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+						});
+
+					} else if (value === 'temperature') {
+						const temperature = this.getCapabilityValue('light_temperature') || 1;
+						const warm = temperature * 255;
+						const cold = (1 - temperature) * 255;
+
+						return await this._sendColors({
+							warm,
+							cold,
+							red: 0,
+							green: 0,
+							blue: 0,
+							duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+						});
+					}
+				}, 50);
+			},
+		});
+
+		// Getting all color values during boot
+		const commandClassColorSwitch = this.getCommandClass('SWITCH_COLOR');
+
+		if (!(commandClassColorSwitch instanceof Error) && typeof commandClassColorSwitch.SWITCH_COLOR_GET === 'function') {
+
+			// Timeout mandatory for stability, often fails getting 1 (or more) value without it
+			setTimeout(() => {
+				// Warm White
+				const WarmWhite = new Promise((resolve, reject) => {
+					commandClassColorSwitch.SWITCH_COLOR_GET({
+						'Color Component ID': 0,
+					})
+						.catch(error => {
+							this.error(error);
+							return resolve(0);
+						})
+						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
+				});
+
+				// Cold White
+				const ColdWhite = new Promise((resolve, reject) => {
+					commandClassColorSwitch.SWITCH_COLOR_GET({
+						'Color Component ID': 1,
+					})
+						.catch(error => {
+							this.error(error);
+							return resolve(0);
+						})
+						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
+				});
+
+				// Red
+				const Red = new Promise((resolve, reject) => {
+					commandClassColorSwitch.SWITCH_COLOR_GET({
+						'Color Component ID': 2,
+					})
+						.catch(error => {
+							this.error(error);
+							return resolve(0);
+						})
+						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
+				});
+
+				// Green
+				const Green = new Promise((resolve, reject) => {
+					commandClassColorSwitch.SWITCH_COLOR_GET({
+						'Color Component ID': 3,
+					})
+						.catch(error => {
+							this.error(error);
+							return resolve(0);
+						})
+						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
+				});
+
+				// Blue
+				const Blue = new Promise((resolve, reject) => {
+					commandClassColorSwitch.SWITCH_COLOR_GET({
+						'Color Component ID': 4,
+					})
+						.catch(error => {
+							this.error(error);
+							return resolve(0);
+						})
+						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
+				});
+
+				// Wait for all color values to arrive
+				Promise.all([WarmWhite, ColdWhite, Red, Green, Blue])
+					.then(result => {
+						if (result[0] === 0 && result[1] === 0) {
+							const hsv = util.convertRGBToHSV({
+								red: result[2],
+								green: result[3],
+								blue: result[4],
+							});
+
+							this.setCapabilityValue('light_mode', 'color');
+							this.setCapabilityValue('light_hue', hsv.hue);
+							this.setCapabilityValue('light_saturation', hsv.saturation);
+						} else {
+							const temperature = Math.round(result[0] / 255 * 100) / 100;
+
+							this.setCapabilityValue('light_mode', 'temperature');
+							this.setCapabilityValue('light_temperature', temperature);
+						}
+					});
+			}, 500);
+		}
 	}
 
-	async _sendColors({ red, green, blue, warm, cold, duration }) {
-		this.log('red', red, 'green', green, 'blue', blue, 'warm', warm, 'cold', cold, 'duration', duration);
-		const obj = {
-			// Duration: 0, // String "Default/Instantly" does not work, leaving the prop out does not work, 0 seems to work bu then vg1 is messed up
+	async _sendColors({ warm, cold, red, green, blue, duration }) {
+		const commandClassSwitchColorVersion = this.getCommandClass('SWITCH_COLOR').version || 1;
+
+		let setCommand = {
 			Properties1: {
 				'Color Component Count': 5,
 			},
 			vg1: [
 				{
 					'Color Component ID': 0,
-					Value: warm,
+					Value: Math.round(warm),
 				},
 				{
 					'Color Component ID': 1,
-					Value: cold,
+					Value: Math.round(cold),
 				},
 				{
 					'Color Component ID': 2,
-					Value: red,
+					Value: Math.round(red),
 				},
 				{
 					'Color Component ID': 3,
-					Value: green,
+					Value: Math.round(green),
 				},
 				{
 					'Color Component ID': 4,
-					Value: blue,
+					Value: Math.round(blue),
 				},
-			]
+			],
 		};
-		this.log(obj);
-		const res = await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET(obj);
-		this.log('res');
-		this.log(res);
-		return res;
 
-		// return await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET({
-		// 	Properties1: {
-		// 		'Color Component Count': 5,
-		// 	},
-		// 	Duration: duration,
-		// 	vg1: [
-		// 		{
-		// 			'Color Component ID': 0,
-		// 			Value: warm,
-		// 		},
-		// 		{
-		// 			'Color Component ID': 1,
-		// 			Value: cold,
-		// 		},
-		// 		{
-		// 			'Color Component ID': 2,
-		// 			Value: red,
-		// 		},
-		// 		{
-		// 			'Color Component ID': 3,
-		// 			Value: green,
-		// 		},
-		// 		{
-		// 			'Color Component ID': 4,
-		// 			Value: blue,
-		// 		},
-		// 	],
-		// });
+		if (typeof duration === 'number' && commandClassSwitchColorVersion > 1) {
+			setCommand.duration = util.calculateZwaveDimDuration(duration) || FACTORY_DEFAULT_COLOR_DURATION;
+		}
+
+		// Fix broken CC_SWITCH_COLOR_V2 parser
+		if (commandClassSwitchColorVersion === 2) {
+			const commandBuffer = new Buffer([setCommand.Properties1['Color Component Count'], 0, setCommand.vg1[0].Value, 1, setCommand.vg1[1].Value, 2, setCommand.vg1[2].Value, 3, setCommand.vg1[3].Value, 4, setCommand.vg1[4].Value, setCommand.duration]);
+			setCommand = commandBuffer;
+		}
+
+		await this.node.CommandClass.COMMAND_CLASS_SWITCH_COLOR.SWITCH_COLOR_SET(setCommand)
+			.catch(error => Promise.reject(error))
+			.then(result => {
+				if (result !== 'TRANSMIT_COMPLETE_OK') return Promise.reject(result);
+
+				return Promise.resolve(true);
+			});
 	}
+
 
 	/**
 	 * Override onSettings to handle combined z-wave settings.
