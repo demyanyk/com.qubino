@@ -13,7 +13,8 @@ const FACTORY_DEFAULT_COLOR_DURATION = 255;
  *
  * TODO: test logic
  * TODO: test autoSceneModeTransitionDuration and autoSceneModeTransitionDurationUnit
- * TODO: 4-dimmers mode is not implementable since the mobile components can not change dynamically
+ * TODO: check with Vid if SWITCH_COLOR duration does not work
+ * TODO: add known limitation (4-dimmers mode) to readme
  */
 
 class ZMNHWD extends QubinoDimDevice {
@@ -24,17 +25,19 @@ class ZMNHWD extends QubinoDimDevice {
 	 */
 	registerCapabilities() {
 
-		this.registerCapability('onoff', 'SWITCH_MULTILEVEL');
-		this.registerCapability('dim', 'SWITCH_MULTILEVEL');
-		let debounceColorMode;
+		this.registerCapability(constants.capabilities.onoff, constants.commandClasses.switchMultilevel);
+		this.registerCapability(constants.capabilities.dim, constants.commandClasses.switchMultilevel);
 
-		this.registerMultipleCapabilityListener(['light_hue', 'light_saturation'], async (values, options) => {
+		let debounceColorMode;
+		this.registerMultipleCapabilityListener([constants.capabilities.lightHue, constants.capabilities.lightSaturation], async (values = {}, options = {}) => {
 			let hue;
 			let saturation;
 
-			typeof values.light_hue === 'number' ? hue = values.light_hue : hue = this.getCapabilityValue('light_hue');
-			typeof values.light_saturation === 'number' ? saturation = values.light_saturation : saturation = this.getCapabilityValue('light_saturation');
-			const value = 1; // Brightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs reallife brightness out of sync
+			this.log('multipleCapabilityListener()', values, options);
+
+			typeof values.light_hue === 'number' ? hue = values.light_hue : hue = this.getCapabilityValue(constants.capabilities.lightHue);
+			typeof values.light_saturation === 'number' ? saturation = values.light_saturation : saturation = this.getCapabilityValue(constants.capabilities.lightSaturation);
+			const value = 1; // Brightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs real life brightness out of sync
 
 			const rgb = util.convertHSVToRGB({ hue, saturation, value });
 
@@ -42,17 +45,25 @@ class ZMNHWD extends QubinoDimDevice {
 				debounceColorMode = false;
 			}, 200);
 
+			let duration = null;
+			if (options.hasOwnProperty(constants.capabilities.lightHue) && options.light_hue.hasOwnProperty('duration')) {
+				duration = options.light_hue.duration;
+			}
+			if (!duration && options.hasOwnProperty(constants.capabilities.lightSaturation) && options.light_saturation.hasOwnProperty('duration')) {
+				duration = options.light_saturation.duration;
+			}
+
 			return await this._sendColors({
 				warm: 0,
 				cold: 0,
 				red: rgb.red,
 				green: rgb.green,
 				blue: rgb.blue,
-				duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+				duration,
 			});
 		});
 
-		this.registerCapabilityListener(['light_temperature'], async (value, options) => {
+		this.registerCapabilityListener(constants.capabilities.lightTemperature, async (value, options) => {
 			const warm = Math.floor(value * 255);
 			const cold = Math.floor((1 - value) * 255);
 
@@ -60,17 +71,20 @@ class ZMNHWD extends QubinoDimDevice {
 				debounceColorMode = false;
 			}, 200);
 
+			let duration = null;
+			if (options.hasOwnProperty('duration')) duration = options.duration;
+
 			return await this._sendColors({
 				warm,
 				cold,
 				red: 0,
 				green: 0,
 				blue: 0,
-				duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+				duration,
 			});
 		});
 
-		this.registerCapability('light_mode', 'SWITCH_COLOR', {
+		this.registerCapability(constants.capabilities.lightMode, constants.capabilities.switchColor, {
 			set: 'SWITCH_COLOR_SET',
 			setParser: (value, options) => {
 
@@ -79,13 +93,13 @@ class ZMNHWD extends QubinoDimDevice {
 					if (debounceColorMode) {
 						clearTimeout(debounceColorMode);
 						debounceColorMode = false;
-						return this.setCapabilityValue('light_mode', value);
+						return this.setCapabilityValue(constants.capabilities.lightMode, value);
 					}
 
 					if (value === 'color') {
-						const hue = this.getCapabilityValue('light_hue') || 1;
-						const saturation = this.getCapabilityValue('light_saturation') || 1;
-						const _value = 1; // Bightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs reallife brightness out of sync
+						const hue = this.getCapabilityValue(constants.capabilities.lightHue) || 1;
+						const saturation = this.getCapabilityValue(constants.capabilities.lightSaturation) || 1;
+						const _value = 1; // brightness value is not determined in SWITCH_COLOR but with SWITCH_MULTILEVEL, changing this throws the dim value vs reallife brightness out of sync
 
 						const rgb = util.convertHSVToRGB({ hue, saturation, _value });
 
@@ -95,11 +109,11 @@ class ZMNHWD extends QubinoDimDevice {
 							red: rgb.red,
 							green: rgb.green,
 							blue: rgb.blue,
-							duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+							duration: options.duration || null,
 						});
 
 					} else if (value === 'temperature') {
-						const temperature = this.getCapabilityValue('light_temperature') || 1;
+						const temperature = this.getCapabilityValue(constants.capabilities.lightTemperature) || 1;
 						const warm = temperature * 255;
 						const cold = (1 - temperature) * 255;
 
@@ -109,7 +123,7 @@ class ZMNHWD extends QubinoDimDevice {
 							red: 0,
 							green: 0,
 							blue: 0,
-							duration: options.duration || FACTORY_DEFAULT_COLOR_DURATION,
+							duration: options.duration || null,
 						});
 					}
 				}, 50);
@@ -117,74 +131,14 @@ class ZMNHWD extends QubinoDimDevice {
 		});
 
 		// Getting all color values during boot
-		const commandClassColorSwitch = this.getCommandClass('SWITCH_COLOR');
-
+		const commandClassColorSwitch = this.getCommandClass(constants.commandClasses.switchColor);
 		if (!(commandClassColorSwitch instanceof Error) && typeof commandClassColorSwitch.SWITCH_COLOR_GET === 'function') {
 
 			// Timeout mandatory for stability, often fails getting 1 (or more) value without it
 			setTimeout(() => {
-				// Warm White
-				const WarmWhite = new Promise((resolve, reject) => {
-					commandClassColorSwitch.SWITCH_COLOR_GET({
-						'Color Component ID': 0,
-					})
-						.catch(error => {
-							this.error(error);
-							return resolve(0);
-						})
-						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
-				});
-
-				// Cold White
-				const ColdWhite = new Promise((resolve, reject) => {
-					commandClassColorSwitch.SWITCH_COLOR_GET({
-						'Color Component ID': 1,
-					})
-						.catch(error => {
-							this.error(error);
-							return resolve(0);
-						})
-						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
-				});
-
-				// Red
-				const Red = new Promise((resolve, reject) => {
-					commandClassColorSwitch.SWITCH_COLOR_GET({
-						'Color Component ID': 2,
-					})
-						.catch(error => {
-							this.error(error);
-							return resolve(0);
-						})
-						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
-				});
-
-				// Green
-				const Green = new Promise((resolve, reject) => {
-					commandClassColorSwitch.SWITCH_COLOR_GET({
-						'Color Component ID': 3,
-					})
-						.catch(error => {
-							this.error(error);
-							return resolve(0);
-						})
-						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
-				});
-
-				// Blue
-				const Blue = new Promise((resolve, reject) => {
-					commandClassColorSwitch.SWITCH_COLOR_GET({
-						'Color Component ID': 4,
-					})
-						.catch(error => {
-							this.error(error);
-							return resolve(0);
-						})
-						.then(result => resolve((result && typeof result.Value === 'number') ? result.Value : 0));
-				});
 
 				// Wait for all color values to arrive
-				Promise.all([WarmWhite, ColdWhite, Red, Green, Blue])
+				Promise.all([this._getColorValue(0), this._getColorValue(1), this._getColorValue(2), this._getColorValue(3), this._getColorValue(4)])
 					.then(result => {
 						if (result[0] === 0 && result[1] === 0) {
 							const hsv = util.convertRGBToHSV({
@@ -193,22 +147,37 @@ class ZMNHWD extends QubinoDimDevice {
 								blue: result[4],
 							});
 
-							this.setCapabilityValue('light_mode', 'color');
-							this.setCapabilityValue('light_hue', hsv.hue);
-							this.setCapabilityValue('light_saturation', hsv.saturation);
+							this.setCapabilityValue(constants.capabilities.lightMode, 'color');
+							this.setCapabilityValue(constants.capabilities.lightHue, hsv.hue);
+							this.setCapabilityValue(constants.capabilities.lightSaturation, hsv.saturation);
 						} else {
 							const temperature = Math.round(result[0] / 255 * 100) / 100;
 
-							this.setCapabilityValue('light_mode', 'temperature');
-							this.setCapabilityValue('light_temperature', temperature);
+							this.setCapabilityValue(constants.capabilities.lightMode, 'temperature');
+							this.setCapabilityValue(constants.capabilities.lightTemperature, temperature);
 						}
 					});
 			}, 500);
 		}
 	}
 
+	async _getColorValue(colorComponentID) {
+		const commandClassColorSwitch = this.getCommandClass('SWITCH_COLOR');
+		if (!(commandClassColorSwitch instanceof Error) && typeof commandClassColorSwitch.SWITCH_COLOR_GET === 'function') {
+
+			try {
+				const result = await commandClassColorSwitch.SWITCH_COLOR_GET({ 'Color Component ID': colorComponentID });
+				return (result && typeof result.Value === 'number') ? result.Value : 0;
+			} catch (err) {
+				this.error(err);
+				return 0;
+			}
+		}
+		return 0;
+	}
+
 	async _sendColors({ warm, cold, red, green, blue, duration }) {
-		const commandClassSwitchColorVersion = this.getCommandClass('SWITCH_COLOR').version || 1;
+		const commandClassSwitchColorVersion = this.getCommandClass(constants.commandClasses.switchColor).version || 1;
 
 		let setCommand = {
 			Properties1: {
@@ -238,10 +207,12 @@ class ZMNHWD extends QubinoDimDevice {
 			],
 		};
 
-		if (typeof duration === 'number' && commandClassSwitchColorVersion > 1) {
-			setCommand.duration = util.calculateZwaveDimDuration(duration) || FACTORY_DEFAULT_COLOR_DURATION;
+		if (commandClassSwitchColorVersion > 1) {
+			this.log('duration', duration);
+			setCommand.duration = typeof duration !== 'number' ? FACTORY_DEFAULT_COLOR_DURATION : util.calculateZwaveDimDuration(duration);
+			this.log('calculated duration', setCommand.duration);
 		}
-
+		this.log(setCommand);
 		// Fix broken CC_SWITCH_COLOR_V2 parser
 		if (commandClassSwitchColorVersion === 2) {
 			const commandBuffer = new Buffer([setCommand.Properties1['Color Component Count'], 0, setCommand.vg1[0].Value, 1, setCommand.vg1[1].Value, 2, setCommand.vg1[2].Value, 3, setCommand.vg1[3].Value, 4, setCommand.vg1[4].Value, setCommand.duration]);
